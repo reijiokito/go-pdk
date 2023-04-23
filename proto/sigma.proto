@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package sigma;
+option  optimize_for = CODE_SIZE;
+option  go_package = "./;sigma";
+
+message Event {
+  bytes  Body = 2;
+  string Data = 3;
+}
+
+message Request {
+  bytes  Body = 2;
+  string Data = 4;
+  bool   JSON = 3;
+}
+
+message Response {
+  int32  Code = 1;
+  bytes  Body = 2;
+}
+
+message Error {
+  int32  code = 1;
+  string message = 2;
+}
