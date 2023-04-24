@@ -14,7 +14,8 @@ func RegisterService[R proto.Message](conn *nats.Conn, url string, handler Servi
 	var request R
 
 	ctx := Service{
-		Context: Context{},
+		Context:    Context{},
+		Connection: conn,
 	}
 
 	_, err := conn.QueueSubscribe(SubscriberURL(url), "API", func(m *nats.Msg) {

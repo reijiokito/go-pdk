@@ -18,7 +18,7 @@ type Service struct {
 	Context
 	Request    Request
 	Reply      string
-	Connection nats.Conn
+	Connection *nats.Conn
 }
 
 func (ctx *Service) Error(e *Error) {
