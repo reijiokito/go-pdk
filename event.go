@@ -45,7 +45,7 @@ func RegisterEvent[R proto.Message](subject string, handler EventHandler[R]) {
 	}
 }
 
-func (es *eventStream) start() {
+func (es *eventStream) start(JetStream nats.JetStreamContext) {
 	sub, err := JetStream.PullSubscribe("", es.receiver, nats.BindStream(es.sender))
 
 	if err != nil {
@@ -74,7 +74,7 @@ func createOrGetEventStream(sender string) *eventStream {
 
 	stream := &eventStream{
 		sender:    sender,
-		receiver:  module,
+		receiver:  "manager",
 		executors: make(map[string]func(m *nats.Msg, id int64)),
 	}
 
@@ -82,8 +82,8 @@ func createOrGetEventStream(sender string) *eventStream {
 	return stream
 }
 
-func startEventStream() {
+func startEventStream(js nats.JetStreamContext) {
 	for _, e := range eventStreams {
-		e.start()
+		e.start(js)
 	}
 }

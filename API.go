@@ -9,7 +9,7 @@ import (
 
 type ServiceHandler[R proto.Message] func(ctx *Service, request R)
 
-func RegisterService[R proto.Message](url string, handler ServiceHandler[R]) {
+func RegisterService[R proto.Message](conn *nats.Conn, url string, handler ServiceHandler[R]) {
 	log.Println("Register Service: ", url)
 	var request R
 
@@ -17,7 +17,7 @@ func RegisterService[R proto.Message](url string, handler ServiceHandler[R]) {
 		Context: Context{},
 	}
 
-	_, err := Connection.QueueSubscribe(SubscriberURL(url), "API", func(m *nats.Msg) {
+	_, err := conn.QueueSubscribe(SubscriberURL(url), "API", func(m *nats.Msg) {
 		if err := proto.Unmarshal(m.Data, &ctx.Request); err != nil {
 			log.Print("Register unmarshal error response data:", err.Error())
 			return

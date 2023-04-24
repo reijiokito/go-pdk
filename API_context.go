@@ -3,6 +3,7 @@ package go_pdk
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -15,8 +16,9 @@ var jsonMarshaller = protojson.MarshalOptions{
 
 type Service struct {
 	Context
-	Request Request
-	Reply   string
+	Request    Request
+	Reply      string
+	Connection nats.Conn
 }
 
 func (ctx *Service) Error(e *Error) {
@@ -56,7 +58,7 @@ func (ctx *Service) flush(response *Response) {
 		log.Print("Register marshal error response data:", err.Error())
 		return
 	}
-	err = Connection.Publish(ctx.Reply, bytes)
+	err = ctx.Connection.Publish(ctx.Reply, bytes)
 	if err != nil {
 		log.Println(fmt.Sprintf("Nats publish to [%s] error: %s", ctx.Reply, err.Error()))
 	}

@@ -7,17 +7,19 @@ import (
 	"syscall"
 )
 
-var Connection *nats.Conn
-var JetStream nats.JetStreamContext
-var module string
-var LOG *Logger
-
-func Release() {
-	Connection.Close()
+type PDK struct {
+	Connection *nats.Conn
+	module     string
+	LOG        *Logger
+	JetStream  nats.JetStreamContext
 }
 
-func Start() {
-	startEventStream()
+func (pdk *PDK) Release() {
+	pdk.Connection.Close()
+}
+
+func (pdk *PDK) Start() {
+	startEventStream(pdk.JetStream)
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig

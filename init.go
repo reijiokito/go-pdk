@@ -17,8 +17,11 @@ func Authenticate(config AuthenticationConfig) {
 	//We can authenticate plugin here with a manager
 }
 
-func Init(name string, c *Configuration) {
-	module = name
+func Init(name string, c *Configuration) *PDK {
+
+	var Connection *nats.Conn
+	var LOG *Logger
+
 	var err error
 	var nats_ []string
 	for _, n := range strings.Split(c.NatsUrl, ",") {
@@ -37,8 +40,15 @@ func Init(name string, c *Configuration) {
 	}
 
 	/*init jetstream*/
-	JetStream, err = Connection.JetStream()
+	JetStream, err := Connection.JetStream()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	return &PDK{
+		Connection: Connection,
+		module:     name,
+		LOG:        LOG,
+		JetStream:  JetStream,
 	}
 }

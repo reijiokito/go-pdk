@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package sigma;
+package go_pdk;
 option  optimize_for = CODE_SIZE;
-option  go_package = "./;sigma";
+option  go_package = "./;go_pdk";
 
 message Event {
   bytes  Body = 2;
@@ -23,4 +23,10 @@ message Response {
 message Error {
   int32  code = 1;
   string message = 2;
+}
+
+message Configuration {
+  string NatsUrl = 1;
+  string NatsUsername = 2;
+  string NatsPassword = 3;
 }
