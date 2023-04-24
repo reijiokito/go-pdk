@@ -6,6 +6,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"log"
 	"reflect"
+	"strings"
 )
 
 type EventHandler[R proto.Message] func(ctx *Context, data R)
@@ -18,9 +19,9 @@ type eventStream struct {
 
 var eventStreams map[string]*eventStream = make(map[string]*eventStream)
 
-func RegisterEvent[R proto.Message](sender string, channel string, handler EventHandler[R]) {
-	stream := createOrGetEventStream(sender)
-	subject := sender + "." + channel
+func RegisterEvent[R proto.Message](subject string, handler EventHandler[R]) {
+	parts := strings.Split(subject, ".")
+	stream := createOrGetEventStream(parts[0])
 	log.Println(fmt.Sprintf("Events: subject = %s, receiver = %s", subject, stream.receiver))
 	var event R
 	ref := reflect.New(reflect.TypeOf(event).Elem())
