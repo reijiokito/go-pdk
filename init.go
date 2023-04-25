@@ -50,5 +50,6 @@ func Init(name string, c *Configuration) *PDK {
 		module:     name,
 		LOG:        LOG,
 		JetStream:  JetStream,
+		dataChan:   make(map[string]chan Data),
 	}
 }
