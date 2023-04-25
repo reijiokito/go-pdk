@@ -9,7 +9,7 @@ type PDK struct {
 	module     string
 	LOG        *Logger
 	JetStream  nats.JetStreamContext
-	dataChan   chan Data
+	dataChan   map[string]chan Data
 }
 
 func (pdk *PDK) Release() {

@@ -22,11 +22,16 @@ var channelStreams map[string]*channel = make(map[string]*channel)
 
 func (pdk *PDK) SendChannelData(subject string, payload []byte) error {
 	// create a new Data object and send it to the channel
+	if _, ok := pdk.dataChan[subject]; !ok {
+		dataChannel := make(chan Data)
+		pdk.dataChan[subject] = dataChannel
+	}
+
 	data := Data{
 		Subject: subject,
 		Payload: payload,
 	}
-	pdk.dataChan <- data
+	pdk.dataChan[subject] <- data
 	return nil
 }
 
@@ -64,7 +69,7 @@ func (pdk *PDK) start(c channel) {
 	go func() {
 		for {
 			select {
-			case data := <-pdk.dataChan:
+			case data := <-pdk.dataChan[c.Subject]:
 				if executor, ok := c.executors[data.Subject]; ok {
 					executor(data.Payload)
 				}
