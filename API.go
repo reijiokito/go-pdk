@@ -14,6 +14,7 @@ func RegisterService[R proto.Message](conn *nats.Conn, url string, handler Servi
 	var request R
 
 	ctx := Service{
+
 		Context:    Context{},
 		Connection: conn,
 	}
