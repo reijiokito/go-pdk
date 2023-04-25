@@ -57,8 +57,8 @@ func (es *eventStream) start(JetStream nats.JetStreamContext) {
 			if messages, err := sub.Fetch(1); err == nil {
 				if len(messages) == 1 {
 					m := messages[0]
-					if _, ok := es.executors[m.Subject]; ok {
-						log.Println("Execute successfully")
+					if executor, ok := es.executors[m.Subject]; ok {
+						executor(m, 1)
 					}
 					m.Ack()
 				}
