@@ -4,6 +4,11 @@ package go_pdk;
 option  optimize_for = CODE_SIZE;
 option  go_package = "./;go_pdk";
 
+
+message Payload {
+  string Data = 3;
+}
+
 message Event {
   bytes  Body = 2;
   string Data = 3;

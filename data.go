@@ -1,53 +1,80 @@
 package go_pdk
 
-import "fmt"
+import (
+	"google.golang.org/protobuf/proto"
+	"log"
+	"reflect"
+)
 
 type Data struct {
-	FromPlugin string
-	Subject    string
-	Payload    interface{}
+	Subject string
+	Payload []byte
 }
 
-func (pdk *PDK) SendData(fromPlugin string, subject string, payload interface{}) error {
+type ChannelHandler[R proto.Message] func(data R)
+
+type channel struct {
+	Subject   string
+	executors map[string]func(m []byte)
+}
+
+var channelStreams map[string]*channel = make(map[string]*channel)
+
+func (pdk *PDK) SendChannelData(subject string, payload []byte) error {
 	// create a new Data object and send it to the channel
 	data := Data{
-		FromPlugin: fromPlugin,
-		Subject:    subject,
-		Payload:    payload,
+		Subject: subject,
+		Payload: payload,
 	}
 	pdk.dataChan <- data
 	return nil
 }
 
-func (pdk *PDK) StartChan() error {
-	// start a goroutine to handle incoming data
+func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHandler[R]) {
+	channelStream := createOrGetChannelStream(subject)
+
+	var event R
+	ref := reflect.New(reflect.TypeOf(event).Elem())
+	event = ref.Interface().(R)
+
+	channelStream.executors[subject] = func(m []byte) {
+		if err := proto.Unmarshal(m, event); err == nil {
+			handler(event)
+		} else {
+			log.Print("Error in parsing data:", err)
+		}
+	}
+}
+
+func createOrGetChannelStream(subject string) *channel {
+	if stream, ok := channelStreams[subject]; ok {
+		return stream
+	}
+
+	stream := &channel{
+		Subject:   subject,
+		executors: make(map[string]func(m []byte)),
+	}
+
+	channelStreams[subject] = stream
+	return stream
+}
+
+func (pdk *PDK) start(c channel) {
 	go func() {
 		for {
 			select {
 			case data := <-pdk.dataChan:
-				// handle the incoming data
-				if data.Subject == "pluginA" {
-					// handle data from pluginA
-					str, ok := data.Payload.(string)
-					if !ok {
-						fmt.Println("invalid data type, expected string")
-					} else {
-						fmt.Printf("PluginA received data: %s\n", str)
-					}
-				} else if data.Subject == "pluginB" {
-					// handle data from pluginB
-					num, ok := data.Payload.(int)
-					if !ok {
-						fmt.Println("invalid data type, expected int")
-					} else {
-						fmt.Printf("PluginB received data: %d\n", num)
-					}
-				} else {
-					fmt.Println("unknown subject:", data.Subject)
+				if executor, ok := c.executors[data.Subject]; ok {
+					executor(data.Payload)
 				}
 			}
 		}
 	}()
+}
 
-	return nil
+func startChannelStream(pdk *PDK) {
+	for _, c := range channelStreams {
+		pdk.start(*c)
+	}
 }

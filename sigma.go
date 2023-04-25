@@ -18,6 +18,7 @@ func (pdk *PDK) Release() {
 
 func (pdk *PDK) Start() {
 	startEventStream(pdk.JetStream)
+	startChannelStream(pdk)
 	//sig := make(chan os.Signal, 1)
 	//signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	//<-sig
