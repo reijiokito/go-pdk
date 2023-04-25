@@ -2,9 +2,6 @@ package go_pdk
 
 import (
 	"github.com/nats-io/nats.go"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type PDK struct {
@@ -20,7 +17,5 @@ func (pdk *PDK) Release() {
 
 func (pdk *PDK) Start() {
 	startEventStream(pdk.JetStream)
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	select {}
 }
