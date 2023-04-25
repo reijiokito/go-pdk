@@ -23,14 +23,3 @@ func (pdk *PDK) Start() {
 	//<-sig
 	select {}
 }
-
-func (pdk *PDK) SendData(fromPlugin string, subject string, payload interface{}) error {
-	// create a new Data object and send it to the channel
-	data := Data{
-		FromPlugin: fromPlugin,
-		Subject:    subject,
-		Payload:    payload,
-	}
-	pdk.dataChan <- data
-	return nil
-}
