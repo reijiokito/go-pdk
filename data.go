@@ -2,38 +2,22 @@ package go_pdk
 
 import (
 	"google.golang.org/protobuf/proto"
-	"log"
 	"reflect"
 )
 
 type Data struct {
 	Subject string
-	Payload []byte
+	Payload proto.Message
 }
 
 type ChannelHandler[R proto.Message] func(data R)
 
 type channel struct {
 	Subject   string
-	executors map[string]func(m []byte)
+	executors map[string]func(m proto.Message)
 }
 
 var channelStreams map[string]*channel = make(map[string]*channel)
-
-func (pdk *PDK) SendChannelData(subject string, payload []byte) error {
-	// create a new Data object and send it to the channel
-	if _, ok := pdk.dataChan[subject]; !ok {
-		dataChannel := make(chan Data)
-		pdk.dataChan[subject] = dataChannel
-	}
-
-	data := Data{
-		Subject: subject,
-		Payload: payload,
-	}
-	pdk.dataChan[subject] <- data
-	return nil
-}
 
 func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHandler[R]) {
 	channelStream := createOrGetChannelStream(subject)
@@ -42,12 +26,8 @@ func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHand
 	ref := reflect.New(reflect.TypeOf(event).Elem())
 	event = ref.Interface().(R)
 
-	channelStream.executors[subject] = func(m []byte) {
-		if err := proto.Unmarshal(m, event); err == nil {
-			handler(event)
-		} else {
-			log.Print("Error in parsing data:", err)
-		}
+	channelStream.executors[subject] = func(m proto.Message) {
+		handler(event)
 	}
 }
 
@@ -58,7 +38,7 @@ func createOrGetChannelStream(subject string) *channel {
 
 	stream := &channel{
 		Subject:   subject,
-		executors: make(map[string]func(m []byte)),
+		executors: make(map[string]func(m proto.Message)),
 	}
 
 	channelStreams[subject] = stream

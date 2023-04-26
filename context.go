@@ -17,3 +17,18 @@ func (pdk *PDK) PostEvent(channel string, data proto.Message) { // account_creat
 		pdk.JetStream.Publish(subject, data)
 	}
 }
+
+func (pdk *PDK) SendChannelData(subject string, payload []byte) error {
+	// create a new Data object and send it to the channel
+	if _, ok := pdk.dataChan[subject]; !ok {
+		dataChannel := make(chan Data)
+		pdk.dataChan[subject] = dataChannel
+	}
+
+	data := Data{
+		Subject: subject,
+		Payload: payload,
+	}
+	pdk.dataChan[subject] <- data
+	return nil
+}
