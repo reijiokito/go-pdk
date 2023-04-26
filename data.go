@@ -2,7 +2,6 @@ package go_pdk
 
 import (
 	"google.golang.org/protobuf/proto"
-	"reflect"
 )
 
 type Data struct {
@@ -19,15 +18,11 @@ type channel struct {
 
 var channelStreams map[string]*channel = make(map[string]*channel)
 
-func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHandler[R]) {
+func RegisterChannelSubject(subject string, handler ChannelHandler[proto.Message]) {
 	channelStream := createOrGetChannelStream(subject)
 
-	var event R
-	ref := reflect.New(reflect.TypeOf(event).Elem())
-	event = ref.Interface().(R)
-
 	channelStream.executors[subject] = func(m proto.Message) {
-		handler(event)
+		handler(m)
 	}
 }
 
