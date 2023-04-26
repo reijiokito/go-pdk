@@ -18,7 +18,7 @@ func (pdk *PDK) PostEvent(channel string, data proto.Message) { // account_creat
 	}
 }
 
-func (pdk *PDK) SendChannelData(subject string, payload []byte) error {
+func (pdk *PDK) SendChannelData(subject string, payload proto.Message) error {
 	// create a new Data object and send it to the channel
 	if _, ok := pdk.dataChan[subject]; !ok {
 		dataChannel := make(chan Data)
