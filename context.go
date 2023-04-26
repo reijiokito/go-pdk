@@ -35,7 +35,7 @@ func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R])
 		if err := proto.Unmarshal(msg.Body, event); err == nil {
 			handler(&context, event)
 		} else {
-			log.Print("Error in parsing data:", err)
+			log.Print("Error in parsing data nats:", err)
 		}
 	}
 
@@ -50,7 +50,7 @@ func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R])
 		if data, ok := m.(R); ok {
 			handler(&context, data)
 		} else {
-			log.Printf("Received message of unexpected type: %T", m)
+			log.Print("Error in parsing data chan:", m)
 		}
 	}
 }
