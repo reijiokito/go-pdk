@@ -1,12 +1,9 @@
 package go_pdk
 
 import (
-	"fmt"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"log"
-	"reflect"
-	"strings"
 )
 
 type Nats struct {
@@ -14,7 +11,7 @@ type Nats struct {
 	JetStream  nats.JetStreamContext
 }
 
-type EventHandler[R proto.Message] func(ctx *Context, data R)
+type SubjectHandler[R proto.Message] func(ctx *Context, data R)
 
 type eventStream struct {
 	sender    string
@@ -32,32 +29,6 @@ func (nats *Nats) PostEvent(subject string, data proto.Message) { // account_cre
 
 	if data, err := proto.Marshal(&msg); err == nil {
 		nats.JetStream.Publish(subject, data)
-	}
-}
-
-func RegisterEvent[R proto.Message](subject string, handler EventHandler[R]) {
-	parts := strings.Split(subject, ".")
-	stream := createOrGetEventStream(parts[0])
-	log.Println(fmt.Sprintf("Events: subject = %s, receiver = %s", subject, stream.receiver))
-	var event R
-	ref := reflect.New(reflect.TypeOf(event).Elem())
-	event = ref.Interface().(R)
-
-	stream.executors[subject] = func(m *nats.Msg) {
-		var msg Event
-		if err := proto.Unmarshal(m.Data, &msg); err != nil {
-			log.Print("Register unmarshal error response data:", err.Error())
-			return
-		}
-		context := Context{
-			Logger{ID: 1},
-		}
-
-		if err := proto.Unmarshal(msg.Body, event); err == nil {
-			handler(&context, event)
-		} else {
-			log.Print("Error in parsing data:", err)
-		}
 	}
 }
 

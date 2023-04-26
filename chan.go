@@ -2,7 +2,6 @@ package go_pdk
 
 import (
 	"google.golang.org/protobuf/proto"
-	"log"
 )
 
 type Chan struct {
@@ -21,8 +20,6 @@ type handler struct {
 
 var channelStreams map[string]*handler = make(map[string]*handler)
 
-type ChannelHandler[R proto.Message] func(ctx *Context, data R)
-
 func (ch *Chan) PostEvent(subject string, payload proto.Message) error {
 	// create a new Data object and send it to the channel
 	if _, ok := ch.dataChan[subject]; !ok {
@@ -36,22 +33,6 @@ func (ch *Chan) PostEvent(subject string, payload proto.Message) error {
 	}
 	ch.dataChan[subject] <- data
 	return nil
-}
-
-func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHandler[R]) {
-	channelStream := createOrGetChannelStream(subject)
-
-	channelStream.executors[subject] = func(m proto.Message) {
-		context := Context{
-			Logger{ID: 1},
-		}
-
-		if data, ok := m.(R); ok {
-			handler(&context, data)
-		} else {
-			log.Printf("Received message of unexpected type: %T", m)
-		}
-	}
 }
 
 func createOrGetChannelStream(subject string) *handler {
