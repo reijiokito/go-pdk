@@ -2,14 +2,13 @@ package go_pdk
 
 import (
 	"google.golang.org/protobuf/proto"
+	"log"
 )
 
 type Data struct {
 	Subject string
 	Payload proto.Message
 }
-
-type ChannelHandler[R proto.Message] func(data R)
 
 type channel struct {
 	Subject   string
@@ -18,11 +17,17 @@ type channel struct {
 
 var channelStreams map[string]*channel = make(map[string]*channel)
 
-func RegisterChannelSubject(subject string, handler ChannelHandler[proto.Message]) {
+type ChannelHandler[R proto.Message] func(data R)
+
+func RegisterChannelSubject[R proto.Message](subject string, handler ChannelHandler[R]) {
 	channelStream := createOrGetChannelStream(subject)
 
 	channelStream.executors[subject] = func(m proto.Message) {
-		handler(m)
+		if data, ok := m.(R); ok {
+			handler(data)
+		} else {
+			log.Printf("Received message of unexpected type: %T", m)
+		}
 	}
 }
 
