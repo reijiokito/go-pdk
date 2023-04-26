@@ -1,24 +1,19 @@
 package go_pdk
 
-import (
-	"github.com/nats-io/nats.go"
-)
-
 type PDK struct {
-	Connection *nats.Conn
-	module     string
-	LOG        *Logger
-	JetStream  nats.JetStreamContext
-	dataChan   map[string]chan Data
+	module string
+	LOG    *Logger
+	Nats   Nats
+	Chan   Chan
 }
 
 func (pdk *PDK) Release() {
-	pdk.Connection.Close()
+	pdk.Nats.Connection.Close()
 }
 
 func (pdk *PDK) Start() {
-	startEventStream(pdk.JetStream)
-	startChannelStream(pdk)
+	startEventStream(pdk.Nats.JetStream)
+	startChannelStream(&pdk.Chan)
 	//sig := make(chan os.Signal, 1)
 	//signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	//<-sig

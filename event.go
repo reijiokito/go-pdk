@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+type Nats struct {
+	Connection *nats.Conn
+	JetStream  nats.JetStreamContext
+}
+
 type EventHandler[R proto.Message] func(ctx *Context, data R)
 
 type eventStream struct {
@@ -18,6 +23,17 @@ type eventStream struct {
 }
 
 var eventStreams map[string]*eventStream = make(map[string]*eventStream)
+
+func (nats *Nats) PostEvent(subject string, data proto.Message) { // account_created
+	msg := Event{}
+	if data, err := proto.Marshal(data); err == nil {
+		msg.Body = data
+	}
+
+	if data, err := proto.Marshal(&msg); err == nil {
+		nats.JetStream.Publish(subject, data)
+	}
+}
 
 func RegisterEvent[R proto.Message](subject string, handler EventHandler[R]) {
 	parts := strings.Split(subject, ".")

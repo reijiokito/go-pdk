@@ -36,20 +36,24 @@ func Init(name string, c *Configuration) *PDK {
 	}
 
 	if err != nil {
-		log.Fatal("Can not connect to NATS:", nats_)
+		log.Println("Can not connect to NATS:", nats_)
 	}
 
 	/*init jetstream*/
 	JetStream, err := Connection.JetStream()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return &PDK{
-		Connection: Connection,
-		module:     name,
-		LOG:        LOG,
-		JetStream:  JetStream,
-		dataChan:   make(map[string]chan Data),
+		module: name,
+		LOG:    LOG,
+		Nats: Nats{
+			Connection: Connection,
+			JetStream:  JetStream,
+		},
+		Chan: Chan{
+			dataChan: make(map[string]chan Data),
+		},
 	}
 }
