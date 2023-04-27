@@ -39,9 +39,9 @@ func (pdk *PDK) PostEvent(subject string, data proto.Message, sc Scope) { // acc
 	}
 }
 
-type SubjectHandler[R proto.Message] func(ctx *Context, data R)
+type SubjectHandler func(ctx *Context, data proto.Message)
 
-func (pdk *PDK) RegisterSubject(subject string, handler SubjectHandler[proto.Message]) {
+func (pdk *PDK) RegisterSubject(subject string, handler SubjectHandler) {
 	//register Nats
 	pdk.Nats.RegisterEvent(subject, handler)
 
