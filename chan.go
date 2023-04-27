@@ -2,6 +2,7 @@ package go_pdk
 
 import (
 	"google.golang.org/protobuf/proto"
+	"log"
 )
 
 type Chan struct {
@@ -20,8 +21,23 @@ type handler struct {
 
 var channelStreams map[string]*handler = make(map[string]*handler)
 
+func (ch *Chan) RegisterEvent(subject string, handler SubjectHandler[proto.Message]) {
+	channelStream := createOrGetChannelStream(subject)
+
+	channelStream.executors[subject] = func(m proto.Message) {
+		context := Context{
+			Logger{ID: 1},
+		}
+
+		if data, ok := m.(proto.Message); ok {
+			handler(&context, data)
+		} else {
+			log.Print("Error in parsing data chan:", m)
+		}
+	}
+}
+
 func (ch *Chan) PostEvent(subject string, payload proto.Message) error {
-	// create a new Data object and send it to the channel
 	if _, ok := ch.dataChan[subject]; !ok {
 		dataChannel := make(chan Data)
 		ch.dataChan[subject] = dataChannel

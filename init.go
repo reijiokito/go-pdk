@@ -18,6 +18,7 @@ func Authenticate(config AuthenticationConfig) {
 }
 
 func Init(name string, c *Configuration) *PDK {
+	Module = name
 
 	var Connection *nats.Conn
 	var LOG *Logger
@@ -46,8 +47,7 @@ func Init(name string, c *Configuration) *PDK {
 	}
 
 	return &PDK{
-		module: name,
-		LOG:    LOG,
+		LOG: LOG,
 		Nats: Nats{
 			Connection: Connection,
 			JetStream:  JetStream,
