@@ -1,6 +1,8 @@
 package go_pdk
 
-import "google.golang.org/protobuf/proto"
+import (
+	"google.golang.org/protobuf/proto"
+)
 
 var Module string
 
@@ -34,18 +36,17 @@ func (pdk *PDK) PostEvent(subject string, data proto.Message, sc Scope) { // acc
 		return
 	}
 	if sc.Local {
-		pdk.Chan.PostEvent(subject, data)
+		go pdk.Chan.PostEvent(subject, data)
 		return
 	}
 }
 
-type SubjectHandler func(ctx *Context, data proto.Message)
+type SubjectHandler[R proto.Message] func(ctx *Context, data R)
 
-func (pdk *PDK) RegisterSubject(subject string, handler SubjectHandler) {
+func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R]) {
 	//register Nats
-	pdk.Nats.RegisterEvent(subject, handler)
+	RegisterNats(subject, handler)
 
 	//register chan
-	pdk.Chan.RegisterEvent(subject, handler)
-
+	RegisterChan(subject, handler)
 }

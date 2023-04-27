@@ -5,6 +5,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"log"
+	"reflect"
 	"strings"
 )
 
@@ -21,11 +22,13 @@ type eventStream struct {
 
 var eventStreams map[string]*eventStream = make(map[string]*eventStream)
 
-func (n *Nats) RegisterEvent(subject string, handler SubjectHandler[proto.Message]) {
+func RegisterNats[R proto.Message](subject string, handler SubjectHandler[R]) {
 	parts := strings.Split(subject, ".")
 	stream := createOrGetEventStream(parts[0])
 	log.Println(fmt.Sprintf("Events: subject = %s, receiver = %s", subject, stream.receiver))
-	var event proto.Message
+	var event R
+	ref := reflect.New(reflect.TypeOf(event).Elem())
+	event = ref.Interface().(R)
 
 	stream.executors[subject] = func(m *nats.Msg) {
 		var msg Event

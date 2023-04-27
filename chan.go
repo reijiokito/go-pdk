@@ -21,7 +21,7 @@ type handler struct {
 
 var channelStreams map[string]*handler = make(map[string]*handler)
 
-func (ch *Chan) RegisterEvent(subject string, handler SubjectHandler[proto.Message]) {
+func RegisterChan[R proto.Message](subject string, handler SubjectHandler[R]) {
 	channelStream := createOrGetChannelStream(subject)
 
 	channelStream.executors[subject] = func(m proto.Message) {
@@ -29,7 +29,7 @@ func (ch *Chan) RegisterEvent(subject string, handler SubjectHandler[proto.Messa
 			Logger{ID: 1},
 		}
 
-		if data, ok := m.(proto.Message); ok {
+		if data, ok := m.(R); ok {
 			handler(&context, data)
 		} else {
 			log.Print("Error in parsing data chan:", m)
