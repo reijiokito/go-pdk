@@ -27,7 +27,6 @@ func (pdk *PDK) Start() {
 	//sig := make(chan os.Signal, 1)
 	//signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	//<-sig
-	select {}
 }
 
 func (pdk *PDK) PostEvent(subject string, data proto.Message, sc Scope) { // account_created
