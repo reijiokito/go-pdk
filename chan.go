@@ -3,6 +3,9 @@ package go_pdk
 import (
 	"google.golang.org/protobuf/proto"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type Chan struct {
@@ -82,4 +85,16 @@ func startChannelStream(ch *Chan) {
 	for _, c := range channelStreams {
 		ch.start(*c)
 	}
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	for {
+		select {
+		case <-sig:
+			for _, d := range ch.dataChan {
+				close(d)
+			}
+		}
+	}
+
 }
