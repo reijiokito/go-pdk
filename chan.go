@@ -88,13 +88,15 @@ func startChannelStream(ch *Chan) {
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	for {
-		select {
-		case <-sig:
-			for _, d := range ch.dataChan {
-				close(d)
+	go func() {
+		for {
+			select {
+			case <-sig:
+				for _, d := range ch.dataChan {
+					close(d)
+				}
 			}
 		}
-	}
+	}()
 
 }
