@@ -1,9 +1,8 @@
-package server
+package go_pdk
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/reijiokito/go-pdk"
 	"log"
 	"time"
 )
@@ -15,16 +14,16 @@ type InstanceData struct {
 	startTime   time.Time
 	Initialized bool
 	Config      interface{}
-	Handlers    map[string]func(pdk *go_pdk.PDK)
+	Handlers    map[string]func(pdk *PDK)
 	lastEvent   time.Time
 }
 
 type (
-	accesser interface{ Access(*go_pdk.PDK) }
+	accesser interface{ Access(*PDK) }
 )
 
-func getHandlers(config interface{}) map[string]func(kong *go_pdk.PDK) {
-	handlers := map[string]func(kong *go_pdk.PDK){}
+func getHandlers(config interface{}) map[string]func(kong *PDK) {
+	handlers := map[string]func(kong *PDK){}
 
 	if h, ok := config.(accesser); ok {
 		handlers["access"] = h.Access

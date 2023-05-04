@@ -1,12 +1,11 @@
 package go_pdk
 
 import (
-	"github.com/reijiokito/go-pdk/server"
 	"google.golang.org/protobuf/proto"
 )
 
 var Module string
-var Server *server.PluginServer
+var Server *PluginServer
 
 type Context struct {
 	Logger

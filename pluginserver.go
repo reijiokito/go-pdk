@@ -1,4 +1,4 @@
-package server
+package go_pdk
 
 import (
 	"fmt"
