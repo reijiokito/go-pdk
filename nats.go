@@ -1,9 +1,8 @@
-package nats
+package go_pdk
 
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/reijiokito/go-pdk"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"reflect"
@@ -23,7 +22,7 @@ type eventStream struct {
 
 var eventStreams map[string]*eventStream = make(map[string]*eventStream)
 
-func RegisterNats[R proto.Message](subject string, handler go_pdk.SubjectHandler[R]) {
+func RegisterNats[R proto.Message](subject string, handler SubjectHandler[R]) {
 	parts := strings.Split(subject, ".")
 	stream := createOrGetEventStream(parts[0])
 	log.Println(fmt.Sprintf("Events: subject = %s, receiver = %s", subject, stream.receiver))
@@ -32,13 +31,13 @@ func RegisterNats[R proto.Message](subject string, handler go_pdk.SubjectHandler
 	event = ref.Interface().(R)
 
 	stream.executors[subject] = func(m *nats.Msg) {
-		var msg go_pdk.Event
+		var msg Event
 		if err := proto.Unmarshal(m.Data, &msg); err != nil {
 			log.Print("Register unmarshal error response data:", err.Error())
 			return
 		}
-		context := go_pdk.Context{
-			go_pdk.Logger{ID: 1},
+		context := Context{
+			Logger{ID: 1},
 		}
 
 		if err := proto.Unmarshal(msg.Body, event); err == nil {
@@ -50,7 +49,7 @@ func RegisterNats[R proto.Message](subject string, handler go_pdk.SubjectHandler
 }
 
 func (n *Nats) PostEvent(subject string, data proto.Message) error { // account_created
-	msg := go_pdk.Event{}
+	msg := Event{}
 	if data, err := proto.Marshal(data); err == nil {
 		msg.Body = data
 	} else {
@@ -94,7 +93,7 @@ func createOrGetEventStream(sender string) *eventStream {
 
 	stream := &eventStream{
 		sender:    sender,
-		receiver:  go_pdk.Module,
+		receiver:  Module,
 		executors: make(map[string]func(m *nats.Msg)),
 	}
 

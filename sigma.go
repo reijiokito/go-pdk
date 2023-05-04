@@ -1,7 +1,6 @@
 package go_pdk
 
 import (
-	"github.com/reijiokito/go-pdk/nats"
 	"github.com/reijiokito/go-pdk/server"
 	"google.golang.org/protobuf/proto"
 )
@@ -15,7 +14,7 @@ type Context struct {
 
 type PDK struct {
 	LOG  *Logger
-	Nats nats.Nats
+	Nats Nats
 	Chan Chan
 }
 
@@ -29,7 +28,7 @@ func (pdk *PDK) Release() {
 }
 
 func (pdk *PDK) Start() {
-	nats.StartEventStream(pdk.Nats.JetStream)
+	StartEventStream(pdk.Nats.JetStream)
 	StartChannelStream(&pdk.Chan)
 	//sig := make(chan os.Signal, 1)
 	//signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -51,7 +50,7 @@ type SubjectHandler[R proto.Message] func(ctx *Context, data R)
 
 func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R]) {
 	//register Nats
-	nats.RegisterNats(subject, handler)
+	RegisterNats(subject, handler)
 
 	//register chan
 	RegisterChan(subject, handler)
