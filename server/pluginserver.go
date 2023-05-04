@@ -15,9 +15,9 @@ import (
 
 type PluginServer struct {
 	lock           sync.RWMutex
-	pluginsDir     string
-	plugins        map[string]*pluginData
-	instances      map[int]*instanceData
+	PluginsDir     string
+	Plugins        map[string]*PluginData
+	Instances      map[int]*InstanceData
 	nextInstanceId int
 	nextEventId    int
 }
@@ -25,18 +25,18 @@ type PluginServer struct {
 // Create a new server context.
 func NewServer() *PluginServer {
 	s := PluginServer{
-		plugins:   map[string]*pluginData{},
-		instances: map[int]*instanceData{},
+		Plugins:   map[string]*PluginData{},
+		Instances: map[int]*InstanceData{},
 	}
 
 	return &s
 }
 
-// SetPluginDir tells the server where to find the plugins.
+// SetPluginDir tells the server where to find the Plugins.
 
 func (s *PluginServer) SetPluginDir(dir string) string {
 	s.lock.Lock()
-	s.pluginsDir = dir
+	s.PluginsDir = dir
 	s.lock.Unlock()
 	return "ok"
 }
@@ -58,7 +58,7 @@ func (s *PluginServer) GetStatus(n int) (*ServerStatusData, error) {
 	}
 
 	var err error
-	for pluginname := range s.plugins {
+	for pluginname := range s.Plugins {
 		reply.Plugins[pluginname], err = s.getPluginStatus(pluginname)
 		if err != nil {
 			return nil, err
@@ -68,16 +68,16 @@ func (s *PluginServer) GetStatus(n int) (*ServerStatusData, error) {
 	return reply, nil
 }
 
-// --- pluginData  --- //
+// --- PluginData  --- //
 
-type pluginData struct {
+type PluginData struct {
 	lock              sync.Mutex
-	name              string
-	code              *plugin.Plugin
+	Name              string
+	Code              *plugin.Plugin
 	modtime           time.Time
 	loadtime          time.Time
-	constructor       func() interface{}
-	config            interface{}
+	Constructor       func() interface{}
+	Config            interface{}
 	lastStartInstance time.Time
 	lastCloseInstance time.Time
 }
@@ -92,16 +92,16 @@ func getModTime(fname string) (modtime time.Time, err error) {
 	return
 }
 
-func (s *PluginServer) loadPlugin(name string) (plug *pluginData, err error) {
+func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	plug, ok := s.plugins[name]
+	plug, ok := s.Plugins[name]
 	if ok {
 		return
 	}
 
-	plugFName := path.Join(s.pluginsDir, name+".so")
+	plugFName := path.Join(s.PluginsDir, name+".so")
 	plugModTime, err := getModTime(plugFName)
 	if err != nil {
 		return
@@ -125,16 +125,16 @@ func (s *PluginServer) loadPlugin(name string) (plug *pluginData, err error) {
 		return
 	}
 
-	plug = &pluginData{
-		name:        name,
-		code:        code,
+	plug = &PluginData{
+		Name:        name,
+		Code:        code,
 		modtime:     plugModTime,
 		loadtime:    time.Now(),
-		constructor: constructor,
-		config:      constructor(),
+		Constructor: constructor,
+		Config:      constructor(),
 	}
 
-	s.plugins[name] = plug
+	s.Plugins[name] = plug
 
 	return
 }
@@ -207,19 +207,19 @@ func getSchemaDict(t reflect.Type) schemaDict {
 	return nil
 }
 
-// Information obtained from a server's compiled code.
+// Information obtained from a server's compiled Code.
 type PluginInfo struct {
-	Name     string     // server name
+	Name     string     // server Name
 	ModTime  time.Time  `codec:",omitempty"` // server file modification time
 	LoadTime time.Time  `codec:",omitempty"` // server load time
 	Phases   []string   // events it can handle
 	Version  string     // version number
 	Priority int        // priority info
-	Schema   schemaDict // JSON representation of the config schema
+	Schema   schemaDict // JSON representation of the Config schema
 }
 
 // GetPluginInfo loads and retrieves information from the compiled server.
-// TODO: reload if the server code has been updated.
+// TODO: reload if the server Code has been updated.
 
 func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 	plug, err := s.loadPlugin(name)
@@ -231,7 +231,7 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 
 	plug.lock.Lock()
 	defer plug.lock.Unlock()
-	handlers := getHandlers(plug.config)
+	handlers := getHandlers(plug.Config)
 
 	info.Phases = make([]string, len(handlers))
 	var i = 0
@@ -240,21 +240,21 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 		i++
 	}
 
-	v, _ := plug.code.Lookup("Version")
+	v, _ := plug.Code.Lookup("Version")
 	if v != nil {
 		info.Version = *v.(*string)
 	}
 
-	prio, _ := plug.code.Lookup("Priority")
+	prio, _ := plug.Code.Lookup("Priority")
 	if prio != nil {
 		info.Priority = *prio.(*int)
 	}
 
-	// 	st, _ := getSchemaDict(reflect.TypeOf(plug.config).Elem())
+	// 	st, _ := getSchemaDict(reflect.TypeOf(plug.Config).Elem())
 	info.Schema = schemaDict{
-		"name": name,
+		"Name": name,
 		"fields": []schemaDict{
-			schemaDict{"config": getSchemaDict(reflect.TypeOf(plug.config).Elem())},
+			schemaDict{"Config": getSchemaDict(reflect.TypeOf(plug.Config).Elem())},
 		},
 	}
 
@@ -271,19 +271,19 @@ type PluginStatusData struct {
 }
 
 func (s *PluginServer) getPluginStatus(name string) (status PluginStatusData, err error) {
-	plug, ok := s.plugins[name]
+	plug, ok := s.Plugins[name]
 	if !ok {
 		err = fmt.Errorf("server %#v not loaded", name)
 		return
 	}
 
 	instances := []InstanceStatus{}
-	for _, instance := range s.instances {
-		if instance.plugin == plug {
+	for _, instance := range s.Instances {
+		if instance.Plugin == plug {
 			instances = append(instances, InstanceStatus{
 				Name:      name,
 				Id:        instance.id,
-				Config:    instance.config,
+				Config:    instance.Config,
 				StartTime: instance.startTime.Unix(),
 			})
 		}
