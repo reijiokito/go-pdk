@@ -80,6 +80,8 @@ type PluginData struct {
 	Config            interface{}
 	lastStartInstance time.Time
 	lastCloseInstance time.Time
+	Services          map[string]func(...interface{})
+	Callers           map[string]func(...interface{}) interface{}
 }
 
 func getModTime(fname string) (modtime time.Time, err error) {
@@ -125,6 +127,30 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 		return
 	}
 
+	getServicesSymbol, err := code.Lookup("GetServices")
+	if err != nil {
+		err = fmt.Errorf("No constructor function on server %s: %w", name, err)
+		return
+	}
+
+	getServices, ok := getServicesSymbol.(func() map[string]func(...interface{}))
+	if !ok {
+		err = fmt.Errorf("Wrong constructor signature on server %s: %w", name, err)
+		return
+	}
+
+	getCallersSymbol, err := code.Lookup("GetCallers")
+	if err != nil {
+		err = fmt.Errorf("No constructor function on server %s: %w", name, err)
+		return
+	}
+
+	getCallers, ok := getCallersSymbol.(func() map[string]func(...interface{}) interface{})
+	if !ok {
+		err = fmt.Errorf("Wrong constructor signature on server %s: %w", name, err)
+		return
+	}
+
 	plug = &PluginData{
 		Name:        name,
 		Code:        code,
@@ -132,6 +158,8 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 		loadtime:    time.Now(),
 		Constructor: constructor,
 		Config:      constructor(),
+		Services:    getServices(),
+		Callers:     getCallers(),
 	}
 
 	s.Plugins[name] = plug
