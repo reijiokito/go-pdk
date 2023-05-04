@@ -1,7 +1,6 @@
-package channel
+package go_pdk
 
 import (
-	"github.com/reijiokito/go-pdk"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"os"
@@ -25,12 +24,12 @@ type handler struct {
 
 var channelStreams map[string]*handler = make(map[string]*handler)
 
-func RegisterChan[R proto.Message](subject string, handler go_pdk.SubjectHandler[R]) {
+func RegisterChan[R proto.Message](subject string, handler SubjectHandler[R]) {
 	channelStream := createOrGetChannelStream(subject)
 
 	channelStream.executors[subject] = func(m proto.Message) {
-		context := go_pdk.Context{
-			go_pdk.Logger{ID: 1},
+		context := Context{
+			Logger{ID: 1},
 		}
 
 		if data, ok := m.(R); ok {

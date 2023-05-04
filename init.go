@@ -1,7 +1,6 @@
 package go_pdk
 
 import (
-	"github.com/reijiokito/go-pdk/channel"
 	"github.com/reijiokito/go-pdk/server"
 )
 
@@ -53,8 +52,8 @@ func Init(pluginDir string) *PDK {
 		//	Connection: Connection,
 		//	JetStream:  JetStream,
 		//},
-		Chan: channel.Chan{
-			DataChan: make(map[string]chan channel.Data),
+		Chan: Chan{
+			DataChan: make(map[string]chan Data),
 		},
 	}
 }
