@@ -1,9 +1,10 @@
-package go_pdk
+package nats
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"github.com/reijiokito/go-pdk"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -17,11 +18,11 @@ func RegisterService[R proto.Message](conn *nats.Conn, url string, handler Servi
 
 	ctx := Service{
 
-		Context:    Context{},
+		Context:    go_pdk.Context{},
 		Connection: conn,
 	}
 
-	_, err := conn.QueueSubscribe(SubscriberURL(url), "API", func(m *nats.Msg) {
+	_, err := conn.QueueSubscribe(go_pdk.SubscriberURL(url), "API", func(m *nats.Msg) {
 		if err := proto.Unmarshal(m.Data, &ctx.Request); err != nil {
 			log.Print("Register unmarshal error response data:", err.Error())
 			return
@@ -34,7 +35,7 @@ func RegisterService[R proto.Message](conn *nats.Conn, url string, handler Servi
 		if ctx.Request.JSON {
 			if err := json.Unmarshal(ctx.Request.Body, request); err != nil {
 				log.Print("Bad Request: " + err.Error())
-				ctx.Error(&Error{Code: 2, Message: "Bad Request"})
+				ctx.Error(&go_pdk.Error{Code: 2, Message: "Bad Request"})
 			} else {
 				handler(&ctx, request)
 			}
@@ -42,7 +43,7 @@ func RegisterService[R proto.Message](conn *nats.Conn, url string, handler Servi
 		} else {
 			if err := proto.Unmarshal(ctx.Request.Body, request); err != nil {
 				log.Print("Bad Request: " + err.Error())
-				ctx.Error(&Error{Code: 2, Message: "Bad Request"})
+				ctx.Error(&go_pdk.Error{Code: 2, Message: "Bad Request"})
 			} else {
 				handler(&ctx, request)
 			}
@@ -60,14 +61,14 @@ var jsonMarshaller = protojson.MarshalOptions{
 }
 
 type Service struct {
-	Context
-	Request    Request
+	go_pdk.Context
+	Request    go_pdk.Request
 	Reply      string
 	Connection *nats.Conn
 }
 
-func (ctx *Service) Error(e *Error) {
-	response := Response{Code: 400}
+func (ctx *Service) Error(e *go_pdk.Error) {
+	response := go_pdk.Response{Code: 400}
 
 	var err error
 	if ctx.Request.JSON {
@@ -82,7 +83,7 @@ func (ctx *Service) Error(e *Error) {
 }
 
 func (ctx *Service) Done(r proto.Message) {
-	response := Response{Code: 200}
+	response := go_pdk.Response{Code: 200}
 
 	var err error
 	if ctx.Request.JSON {
@@ -97,7 +98,7 @@ func (ctx *Service) Done(r proto.Message) {
 	ctx.flush(&response)
 }
 
-func (ctx *Service) flush(response *Response) {
+func (ctx *Service) flush(response *go_pdk.Response) {
 	bytes, err := proto.Marshal(response)
 	if err != nil {
 		log.Print("Register marshal error response data:", err.Error())

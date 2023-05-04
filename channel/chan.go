@@ -1,6 +1,7 @@
-package go_pdk
+package channel
 
 import (
+	"github.com/reijiokito/go-pdk"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"os"
@@ -9,7 +10,7 @@ import (
 )
 
 type Chan struct {
-	dataChan map[string]chan Data
+	DataChan map[string]chan Data
 }
 
 type Data struct {
@@ -24,12 +25,12 @@ type handler struct {
 
 var channelStreams map[string]*handler = make(map[string]*handler)
 
-func RegisterChan[R proto.Message](subject string, handler SubjectHandler[R]) {
+func RegisterChan[R proto.Message](subject string, handler go_pdk.SubjectHandler[R]) {
 	channelStream := createOrGetChannelStream(subject)
 
 	channelStream.executors[subject] = func(m proto.Message) {
-		context := Context{
-			Logger{ID: 1},
+		context := go_pdk.Context{
+			go_pdk.Logger{ID: 1},
 		}
 
 		if data, ok := m.(R); ok {
@@ -41,16 +42,16 @@ func RegisterChan[R proto.Message](subject string, handler SubjectHandler[R]) {
 }
 
 func (ch *Chan) PostEvent(subject string, payload proto.Message) error {
-	if _, ok := ch.dataChan[subject]; !ok {
+	if _, ok := ch.DataChan[subject]; !ok {
 		dataChannel := make(chan Data)
-		ch.dataChan[subject] = dataChannel
+		ch.DataChan[subject] = dataChannel
 	}
 
 	data := Data{
 		Subject: subject,
 		Payload: payload,
 	}
-	ch.dataChan[subject] <- data
+	ch.DataChan[subject] <- data
 	return nil
 }
 
@@ -72,7 +73,7 @@ func (ch *Chan) start(c handler) {
 	go func() {
 		for {
 			select {
-			case data := <-ch.dataChan[c.Subject]:
+			case data := <-ch.DataChan[c.Subject]:
 				if executor, ok := c.executors[data.Subject]; ok {
 					executor(data.Payload)
 				}
@@ -81,7 +82,7 @@ func (ch *Chan) start(c handler) {
 	}()
 }
 
-func startChannelStream(ch *Chan) {
+func StartChannelStream(ch *Chan) {
 	for _, c := range channelStreams {
 		ch.start(*c)
 	}
@@ -92,7 +93,7 @@ func startChannelStream(ch *Chan) {
 		for {
 			select {
 			case <-sig:
-				for _, d := range ch.dataChan {
+				for _, d := range ch.DataChan {
 					close(d)
 				}
 			}
