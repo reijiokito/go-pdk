@@ -1,8 +1,8 @@
 package go_pdk
 
 import (
-	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"log"
 	"time"
 )
@@ -80,7 +80,7 @@ func (s *PluginServer) StartInstance(config PluginConfig) (*InstanceStatus, erro
 
 	instanceConfig := plug.Constructor()
 
-	if err := json.Unmarshal(config.Config, instanceConfig); err != nil {
+	if err := yaml.Unmarshal(config.Config, instanceConfig); err != nil {
 		return nil, fmt.Errorf("Decoding Config: %w", err)
 	}
 
