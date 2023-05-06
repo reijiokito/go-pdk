@@ -74,12 +74,12 @@ type PluginData struct {
 	lock              sync.Mutex
 	Name              string
 	Code              *plugin.Plugin
-	modtime           time.Time
-	loadtime          time.Time
+	Modtime           time.Time
+	Loadtime          time.Time
 	Constructor       func() interface{}
 	Config            interface{}
-	lastStartInstance time.Time
-	lastCloseInstance time.Time
+	LastStartInstance time.Time
+	LastCloseInstance time.Time
 	Services          map[string]func(...interface{})
 	Callers           map[string]func(...interface{}) interface{}
 }
@@ -154,8 +154,8 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 	plug = &PluginData{
 		Name:        name,
 		Code:        code,
-		modtime:     plugModTime,
-		loadtime:    time.Now(),
+		Modtime:     plugModTime,
+		Loadtime:    time.Now(),
 		Constructor: constructor,
 		Config:      constructor(),
 		Services:    getServices(),
@@ -310,20 +310,20 @@ func (s *PluginServer) getPluginStatus(name string) (status PluginStatusData, er
 		if instance.Plugin == plug {
 			instances = append(instances, InstanceStatus{
 				Name:      name,
-				Id:        instance.id,
+				Id:        instance.Id,
 				Config:    instance.Config,
-				StartTime: instance.startTime.Unix(),
+				StartTime: instance.StartTime.Unix(),
 			})
 		}
 	}
 
 	status = PluginStatusData{
 		Name:              name,
-		Modtime:           plug.modtime.Unix(),
-		LoadTime:          plug.loadtime.Unix(),
+		Modtime:           plug.Modtime.Unix(),
+		LoadTime:          plug.Loadtime.Unix(),
 		Instances:         instances,
-		LastStartInstance: plug.lastStartInstance.Unix(),
-		LastCloseInstance: plug.lastCloseInstance.Unix(),
+		LastStartInstance: plug.LastStartInstance.Unix(),
+		LastCloseInstance: plug.LastCloseInstance.Unix(),
 	}
 	return
 }
