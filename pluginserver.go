@@ -255,7 +255,7 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 		return nil, err
 	}
 
-	info := &PluginInfo{Name: name}
+	info := &PluginInfo{Name: name, LoadTime: plug.Loadtime, ModTime: plug.Modtime}
 
 	plug.lock.Lock()
 	defer plug.lock.Unlock()

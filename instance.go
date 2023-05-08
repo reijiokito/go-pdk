@@ -85,10 +85,11 @@ func (s *PluginServer) StartInstance(config PluginConfig) (*InstanceStatus, erro
 	}
 
 	instance := InstanceData{
-		Plugin:    plug,
-		StartTime: time.Now(),
-		Config:    instanceConfig,
-		Handlers:  getHandlers(instanceConfig),
+		Plugin:      plug,
+		StartTime:   time.Now(),
+		Config:      instanceConfig,
+		Handlers:    getHandlers(instanceConfig),
+		Initialized: true,
 	}
 
 	s.lock.Lock()
@@ -156,7 +157,7 @@ func (s *PluginServer) CloseInstance(id int) (*InstanceStatus, error) {
 	s.lock.Lock()
 	instance.Plugin.LastCloseInstance = time.Now()
 	delete(s.Instances, id)
-	s.expireInstances()
+	//s.expireInstances()
 	s.lock.Unlock()
 
 	return status, nil
