@@ -18,6 +18,7 @@ type PluginServer struct {
 	PluginsDir     string
 	Plugins        map[string]*PluginData
 	Instances      map[int]*InstanceData
+	Events         map[int]*EventData
 	nextInstanceId int
 	nextEventId    int
 }
