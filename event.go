@@ -18,17 +18,17 @@ type EventData struct {
 	Pdk      *PDK             // go-pdk instance
 }
 
-func (s *PluginServer) HandleEvent(in StartEventData, out *StepData) error {
+func (s *PluginServer) HandleEvent(in StartEventData) (*StepData, error) {
 	s.lock.RLock()
 	instance, ok := s.Instances[in.InstanceId]
 	s.lock.RUnlock()
 	if !ok {
-		return fmt.Errorf("No plugin instance %d", in.InstanceId)
+		return nil, fmt.Errorf("no plugin instance %d", in.InstanceId)
 	}
 
 	h, ok := instance.Handlers[in.EventName]
 	if !ok {
-		return fmt.Errorf("undefined method %s on plugin %s",
+		return nil, fmt.Errorf("undefined method %s on plugin %s",
 			in.EventName, instance.Plugin.Name)
 	}
 
@@ -64,8 +64,8 @@ func (s *PluginServer) HandleEvent(in StartEventData, out *StepData) error {
 
 	ipc <- "run" // kickstart the handler
 
-	*out = StepData{EventId: event.Id, Data: <-ipc}
-	return nil
+	out := &StepData{EventId: event.Id, Data: <-ipc}
+	return out, nil
 }
 
 // A callback's response/request.
@@ -74,21 +74,21 @@ type StepData struct {
 	Data    interface{} // carried data
 }
 
-// Step carries a callback's anser back from Kong to the plugin,
+// Step carries a callback's answer back from Sigma to the plugin,
 // the return value is either a new callback request or a finish signal.
 //
 // RPC exported method
-func (s *PluginServer) Step(in StepData, out *StepData) error {
+func (s *PluginServer) Step(in StepData) (*StepData, error) {
 	s.lock.RLock()
 	event, ok := s.Events[in.EventId]
 	s.lock.RUnlock()
 	if !ok {
-		return fmt.Errorf("No running event %d", in.EventId)
+		return nil, fmt.Errorf("No running event %d", in.EventId)
 	}
 
 	event.Ipc <- in.Data
 	outStr := <-event.Ipc
-	*out = StepData{EventId: in.EventId, Data: outStr}
+	out := &StepData{EventId: in.EventId, Data: outStr}
 
-	return nil
+	return out, nil
 }

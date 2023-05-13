@@ -22,8 +22,8 @@ type (
 	accesser interface{ Access(*PDK) }
 )
 
-func getHandlers(config interface{}) map[string]func(kong *PDK) {
-	handlers := map[string]func(kong *PDK){}
+func getHandlers(config interface{}) map[string]func(pdk *PDK) {
+	handlers := map[string]func(pdk *PDK){}
 
 	if h, ok := config.(accesser); ok {
 		handlers["access"] = h.Access
