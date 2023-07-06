@@ -16,10 +16,12 @@ func Init(pluginDir string) *PDK {
 
 	var LOG *Logger
 
-	return &PDK{
+	Pdk = &PDK{
 		LOG: LOG,
 		Chan: Chan{
 			DataChan: make(map[string]chan Data),
 		},
 	}
+
+	return Pdk
 }

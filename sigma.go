@@ -6,6 +6,7 @@ import (
 
 var Module string
 var Server *PluginServer
+var Pdk *PDK
 
 type Context struct {
 	Logger
