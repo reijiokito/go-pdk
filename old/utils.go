@@ -1,4 +1,4 @@
-package go_pdk
+package old
 
 import (
 	"fmt"
