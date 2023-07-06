@@ -75,8 +75,8 @@ type PluginData struct {
 	lock              sync.Mutex
 	Name              string
 	Code              *plugin.Plugin
-	Modtime           time.Time
-	Loadtime          time.Time
+	ModTime           time.Time
+	LoadTime          time.Time
 	Constructor       func() interface{}
 	Config            interface{}
 	LastStartInstance time.Time
@@ -118,45 +118,45 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 
 	constructorSymbol, err := code.Lookup("New")
 	if err != nil {
-		err = fmt.Errorf("No constructor function on server %s: %w", name, err)
+		err = fmt.Errorf("no constructor function on server %s: %w", name, err)
 		return
 	}
 
 	constructor, ok := constructorSymbol.(func() interface{})
 	if !ok {
-		err = fmt.Errorf("Wrong constructor signature on server %s: %w", name, err)
+		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
 	}
 
 	getServicesSymbol, err := code.Lookup("GetServices")
 	if err != nil {
-		err = fmt.Errorf("No constructor function on server %s: %w", name, err)
+		err = fmt.Errorf("no constructor function on server %s: %w", name, err)
 		return
 	}
 
 	getServices, ok := getServicesSymbol.(func() map[string]func(...interface{}))
 	if !ok {
-		err = fmt.Errorf("Wrong constructor signature on server %s: %w", name, err)
+		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
 	}
 
 	getCallersSymbol, err := code.Lookup("GetCallers")
 	if err != nil {
-		err = fmt.Errorf("No constructor function on server %s: %w", name, err)
+		err = fmt.Errorf("no constructor function on server %s: %w", name, err)
 		return
 	}
 
 	getCallers, ok := getCallersSymbol.(func() map[string]func(...interface{}) interface{})
 	if !ok {
-		err = fmt.Errorf("Wrong constructor signature on server %s: %w", name, err)
+		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
 	}
 
 	plug = &PluginData{
 		Name:        name,
 		Code:        code,
-		Modtime:     plugModTime,
-		Loadtime:    time.Now(),
+		ModTime:     plugModTime,
+		LoadTime:    time.Now(),
 		Constructor: constructor,
 		Config:      constructor(),
 		Services:    getServices(),
@@ -256,7 +256,7 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 		return nil, err
 	}
 
-	info := &PluginInfo{Name: name, LoadTime: plug.Loadtime, ModTime: plug.Modtime}
+	info := &PluginInfo{Name: name, LoadTime: plug.LoadTime, ModTime: plug.ModTime}
 
 	plug.lock.Lock()
 	defer plug.lock.Unlock()
@@ -279,7 +279,6 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 		info.Priority = *prio.(*int)
 	}
 
-	// 	st, _ := getSchemaDict(reflect.TypeOf(plug.Config).Elem())
 	info.Schema = schemaDict{
 		"Name": name,
 		"fields": []schemaDict{
@@ -292,7 +291,7 @@ func (s *PluginServer) GetPluginInfo(name string) (*PluginInfo, error) {
 
 type PluginStatusData struct {
 	Name              string
-	Modtime           int64
+	ModTime           int64
 	LoadTime          int64
 	Instances         []InstanceStatus
 	LastStartInstance int64
@@ -306,7 +305,7 @@ func (s *PluginServer) getPluginStatus(name string) (status PluginStatusData, er
 		return
 	}
 
-	instances := []InstanceStatus{}
+	var instances []InstanceStatus
 	for _, instance := range s.Instances {
 		if instance.Plugin == plug {
 			instances = append(instances, InstanceStatus{
@@ -320,8 +319,8 @@ func (s *PluginServer) getPluginStatus(name string) (status PluginStatusData, er
 
 	status = PluginStatusData{
 		Name:              name,
-		Modtime:           plug.Modtime.Unix(),
-		LoadTime:          plug.Loadtime.Unix(),
+		ModTime:           plug.ModTime.Unix(),
+		LoadTime:          plug.LoadTime.Unix(),
 		Instances:         instances,
 		LastStartInstance: plug.LastStartInstance.Unix(),
 		LastCloseInstance: plug.LastCloseInstance.Unix(),

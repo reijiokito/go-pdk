@@ -157,7 +157,10 @@ func (s *PluginServer) CloseInstance(id int) (*InstanceStatus, error) {
 	s.lock.Lock()
 	instance.Plugin.LastCloseInstance = time.Now()
 	delete(s.Instances, id)
-	//s.expireInstances()
+	err := s.expireInstances()
+	if err != nil {
+		return nil, err
+	}
 	s.lock.Unlock()
 
 	return status, nil

@@ -1,16 +1,13 @@
-package go_pdk
+package old
 
 import (
-	"bytes"
-	"errors"
-	"io"
-	"net/http"
+	"github.com/reijiokito/go-pdk"
 	"sync"
 )
 
 type HttpContext struct {
-	Request  Request
-	Response Response
+	Request  go_pdk.Request
+	Response go_pdk.Response
 }
 
 type HttpContextPool struct {
@@ -25,10 +22,10 @@ func (ctx *HttpContext) reset() {
 
 func newHttpContext() *HttpContext {
 	return &HttpContext{
-		Request: Request{
+		Request: go_pdk.Request{
 			Body: make([]byte, 16384),
 		},
-		Response: Response{
+		Response: go_pdk.Response{
 			Body: make([]byte, 0),
 			Code: 200,
 		},
@@ -52,22 +49,23 @@ func NewContextPool() HttpContextPool {
 		}}
 }
 
-func (r *Request) Build(req *http.Request) error {
-	if req == nil {
-		return errors.New("natsproxy: Request cannot be nil")
-	}
-
-	buf := bytes.NewBuffer(r.Body)
-	buf.Reset()
-	if req.Body != nil {
-		if _, err := io.Copy(buf, req.Body); err != nil {
-			return err
-		}
-		if err := req.Body.Close(); err != nil {
-			return err
-		}
-	}
-
-	r.Body = buf.Bytes()
-	return nil
-}
+//
+//func (r *go_pdk.Request) Build(req *http.Request) error {
+//	if req == nil {
+//		return errors.New("natsproxy: Request cannot be nil")
+//	}
+//
+//	buf := bytes.NewBuffer(r.Body)
+//	buf.Reset()
+//	if req.Body != nil {
+//		if _, err := io.Copy(buf, req.Body); err != nil {
+//			return err
+//		}
+//		if err := req.Body.Close(); err != nil {
+//			return err
+//		}
+//	}
+//
+//	r.Body = buf.Bytes()
+//	return nil
+//}
