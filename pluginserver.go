@@ -28,6 +28,7 @@ func NewServer() *PluginServer {
 	s := PluginServer{
 		Plugins:   map[string]*PluginData{},
 		Instances: map[int]*InstanceData{},
+		Events:    map[int]*EventData{},
 	}
 
 	return &s
