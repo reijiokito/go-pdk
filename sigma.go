@@ -1,45 +1,42 @@
 package go_pdk
 
 import (
+	"github.com/reijiokito/go-pdk/log"
+	"github.com/reijiokito/go-pdk/old"
 	"google.golang.org/protobuf/proto"
 )
 
 var Module string
 var Server *PluginServer
-var Pdk *PDK
 
 type Context struct {
-	Logger
+	log.Log
 }
 
 type PDK struct {
-	LOG  *Logger
-	Chan Chan
+	LOG log.Log
 }
 
-func (pdk *PDK) Release() {
-
-}
-
-func (pdk *PDK) Start() {
-	StartChannelStream(&pdk.Chan)
-	//sig := make(chan os.Signal, 1)
-	//signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	//<-sig
-}
-
-func (pdk *PDK) PostEvent(subject string, data proto.Message) { // account_create
-	go func() {
-		err := pdk.Chan.PostEvent(subject, data)
-		if err != nil {
-			return
-		}
-	}()
-	return
-}
+//func (pdk *PDK) Release() {
+//
+//}
+//
+//func (pdk *PDK) Start() {
+//	StartChannelStream(&pdk.Chan)
+//}
+//
+//func (pdk *PDK) PostEvent(subject string, data proto.Message) { // account_create
+//	go func() {
+//		err := pdk.Chan.PostEvent(subject, data)
+//		if err != nil {
+//			return
+//		}
+//	}()
+//	return
+//}
 
 type SubjectHandler[R proto.Message] func(ctx *Context, data R)
 
 func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R]) {
-	RegisterChan(subject, handler)
+	old.RegisterChan(subject, handler)
 }

@@ -12,32 +12,32 @@ type StartEventData struct {
 }
 
 type EventData struct {
-	Id       int              // event id
-	Instance *InstanceData    // plugin instance
-	Ipc      chan interface{} // communication channel (TODO: use decoded structs)
-	Pdk      *PDK             // go-pdk instance
+	Id       int           // event id
+	Instance *InstanceData // plugin instance
+	Ipc      chan any      // communication channel (TODO: use decoded structs)
+	Pdk      *PDK          // go-pdk instance
 }
 
-func (s *PluginServer) HandleEvent(in StartEventData) (*StepData, error) {
+func (s *PluginServer) HandleEvent(in StartEventData) error {
 	s.lock.RLock()
 	instance, ok := s.Instances[in.InstanceId]
 	s.lock.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("no plugin instance %d", in.InstanceId)
+		return fmt.Errorf("no plugin instance %d", in.InstanceId)
 	}
 
 	h, ok := instance.Handlers[in.EventName]
 	if !ok {
-		return nil, fmt.Errorf("undefined method %s on plugin %s",
+		return fmt.Errorf("undefined method %s on plugin %s",
 			in.EventName, instance.Plugin.Name)
 	}
 
-	ipc := make(chan interface{})
+	ipc := make(chan any)
 
 	event := EventData{
 		Instance: instance,
 		Ipc:      ipc,
-		//Pdk:      dk.Init(ipc),
+		Pdk:      Init(ipc),
 	}
 
 	s.lock.Lock()
@@ -64,31 +64,5 @@ func (s *PluginServer) HandleEvent(in StartEventData) (*StepData, error) {
 
 	ipc <- "run" // kickstart the handler
 
-	out := &StepData{EventId: event.Id, Data: <-ipc}
-	return out, nil
-}
-
-// A callback's response/request.
-type StepData struct {
-	EventId int         // event cycle to which this belongs
-	Data    interface{} // carried data
-}
-
-// Step carries a callback's answer back from Sigma to the plugin,
-// the return value is either a new callback request or a finish signal.
-//
-// RPC exported method
-func (s *PluginServer) Step(in StepData) (*StepData, error) {
-	s.lock.RLock()
-	event, ok := s.Events[in.EventId]
-	s.lock.RUnlock()
-	if !ok {
-		return nil, fmt.Errorf("No running event %d", in.EventId)
-	}
-
-	event.Ipc <- in.Data
-	outStr := <-event.Ipc
-	out := &StepData{EventId: in.EventId, Data: outStr}
-
-	return out, nil
+	return nil
 }

@@ -77,12 +77,12 @@ type PluginData struct {
 	Code              *plugin.Plugin
 	ModTime           time.Time
 	LoadTime          time.Time
-	Constructor       func() interface{}
-	Config            interface{}
+	Constructor       func() any
+	Config            any
 	LastStartInstance time.Time
 	LastCloseInstance time.Time
-	Services          map[string]func(...interface{})
-	Callers           map[string]func(...interface{}) interface{}
+	Services          map[string]func(...any)
+	Callers           map[string]func(...any) any
 }
 
 func getModTime(fname string) (modtime time.Time, err error) {
@@ -122,7 +122,7 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 		return
 	}
 
-	constructor, ok := constructorSymbol.(func() interface{})
+	constructor, ok := constructorSymbol.(func() any)
 	if !ok {
 		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
@@ -134,7 +134,7 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 		return
 	}
 
-	getServices, ok := getServicesSymbol.(func() map[string]func(...interface{}))
+	getServices, ok := getServicesSymbol.(func() map[string]func(...any))
 	if !ok {
 		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
@@ -146,7 +146,7 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 		return
 	}
 
-	getCallers, ok := getCallersSymbol.(func() map[string]func(...interface{}) interface{})
+	getCallers, ok := getCallersSymbol.(func() map[string]func(...any) any)
 	if !ok {
 		err = fmt.Errorf("wrong constructor signature on server %s: %w", name, err)
 		return
@@ -168,7 +168,7 @@ func (s *PluginServer) loadPlugin(name string) (plug *PluginData, err error) {
 	return
 }
 
-type schemaDict map[string]interface{}
+type schemaDict map[string]any
 
 func getSchemaDict(t reflect.Type) schemaDict {
 	switch t.Kind() {

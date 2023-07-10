@@ -1,5 +1,7 @@
 package go_pdk
 
+import "github.com/reijiokito/go-pdk/log"
+
 type AuthenticationConfig struct {
 	ManagerUrl string
 	Name       string
@@ -10,18 +12,13 @@ func Authenticate(config AuthenticationConfig) {
 	//We can authenticate server here with a manager
 }
 
-func Init(pluginDir string) *PDK {
+func InitServer(pluginDir string) {
 	Server = NewServer()
 	Server.SetPluginDir(pluginDir)
+}
 
-	var LOG *Logger
-
-	Pdk = &PDK{
-		LOG: LOG,
-		Chan: Chan{
-			DataChan: make(map[string]chan Data),
-		},
+func Init(ch chan any) *PDK {
+	return &PDK{
+		LOG: log.New(ch),
 	}
-
-	return Pdk
 }

@@ -13,7 +13,7 @@ type InstanceData struct {
 	Plugin      *PluginData
 	StartTime   time.Time
 	Initialized bool
-	Config      interface{}
+	Config      any
 	Handlers    map[string]func(pdk *PDK)
 	lastEvent   time.Time
 }
@@ -22,7 +22,7 @@ type (
 	accesser interface{ Access(*PDK) }
 )
 
-func getHandlers(config interface{}) map[string]func(pdk *PDK) {
+func getHandlers(config any) map[string]func(pdk *PDK) {
 	handlers := map[string]func(pdk *PDK){}
 
 	if h, ok := config.(accesser); ok {
@@ -60,9 +60,9 @@ type PluginConfig struct {
 
 // Current state of a server instance.  TODO: add some statistics
 type InstanceStatus struct {
-	Name      string      // server Name
-	Id        int         // instance Id
-	Config    interface{} // configuration data, decoded
+	Name      string // server Name
+	Id        int    // instance Id
+	Config    any    // configuration data, decoded
 	StartTime int64
 }
 
