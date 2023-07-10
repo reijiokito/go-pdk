@@ -2,8 +2,6 @@ package go_pdk
 
 import (
 	"github.com/reijiokito/go-pdk/log"
-	"github.com/reijiokito/go-pdk/old"
-	"google.golang.org/protobuf/proto"
 )
 
 var Module string
@@ -35,8 +33,8 @@ type PDK struct {
 //	return
 //}
 
-type SubjectHandler[R proto.Message] func(ctx *Context, data R)
-
-func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R]) {
-	old.RegisterChan(subject, handler)
-}
+//type SubjectHandler[R proto.Message] func(ctx *Context, data R)
+//
+//func RegisterSubject[R proto.Message](subject string, handler SubjectHandler[R]) {
+//	old.RegisterChan(subject, handler)
+//}
