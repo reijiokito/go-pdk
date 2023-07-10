@@ -2,6 +2,7 @@ package go_pdk
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -50,6 +51,7 @@ func (s *PluginServer) HandleEvent(in StartEventData) error {
 	go func() {
 		_ = <-ipc
 		h(event.Pdk)
+		log.Println("Done run")
 
 		func() {
 			defer func() { recover() }()
@@ -59,7 +61,11 @@ func (s *PluginServer) HandleEvent(in StartEventData) error {
 		s.lock.Lock()
 		defer s.lock.Unlock()
 		event.Instance.lastEvent = time.Now()
+		log.Println("Done Update Event")
+		log.Println("LENTH: ", len(s.Events))
 		delete(s.Events, event.Id)
+		log.Println("LENTH: ", len(s.Events))
+		log.Println("Done Delete")
 	}()
 
 	ipc <- "run" // kickstart the handler
