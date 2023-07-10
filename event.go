@@ -53,11 +53,6 @@ func (s *PluginServer) HandleEvent(in StartEventData) error {
 		h(event.Pdk)
 		log.Println("Done run")
 
-		func() {
-			defer func() { recover() }()
-			ipc <- "ret"
-		}()
-
 		s.lock.Lock()
 		defer s.lock.Unlock()
 		event.Instance.lastEvent = time.Now()
